@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TECNOFIBRAS - Controle de Produção & Metas</title>
+  <style>
+    :root {
+      --bg-dark: #070a12;
+      --bg-card: #0d1424;
+      --bg-subcard: #131d31;
+      --bg-input: #1a263d;
+      --text-main: #f1f5f9;
+      --text-muted: #64748b;
+      --accent-cyan: #06b6d4;
+      --accent-green: #10b981;
+      --accent-yellow: #eab308;
+      --accent-red: #ef4444;
+      --border: #1e293b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background-color: var(--bg-dark); color: var(--text-main); padding: 15px; }
+    .container { max-width: 1400px; margin: 0 auto; }
+
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo-box { background: #0284c7; padding: 8px 12px; border-radius: 8px; font-weight: 900; font-size: 1.2rem; color: #fff; display: flex; align-items: center; gap: 8px; }
+    .brand-info h2 { font-size: 1.1rem; font-weight: 700; color: #fff; }
+    .brand-info p { font-size: 0.8rem; color: var(--text-muted); }
+
+    .header-right { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+    .datetime { font-size: 0.85rem; color: var(--text-muted); text-align: right; }
+    .btn-action { background: #0d1424; border: 1px solid var(--border); color: #fff; padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+    .btn-action:hover { background: #1a263d; }
+    .btn-wsp { background: #064e3b; color: #34d399; border-color: #047857; }
+    .btn-wsp:hover { background: #065f46; }
+
+    .top-grid { display: grid; grid-template-columns: 320px repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+    @media (max-width: 1100px) { .top-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 640px) { .top-grid { grid-template-columns: 1fr; } }
+
+    .card-setor { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+    .setor-label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+    .setor-grid-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+    .btn-setor { background: var(--bg-subcard); border: 1px solid var(--border); padding: 7px; border-radius: 6px; color: var(--text-muted); text-align: center; cursor: pointer; font-weight: 700; font-size: 0.75rem; }
+    .btn-setor.active { background: #0284c7; color: #fff; border-color: #38bdf8; }
+
+    .turno-selector { display: flex; gap: 6px; }
+    .btn-turno { flex: 1; background: var(--bg-subcard); border: 1px solid var(--border); padding: 6px; border-radius: 6px; color: var(--text-muted); text-align: center; cursor: pointer; font-weight: 700; font-size: 0.75rem; }
+    .btn-turno.active { background: var(--accent-green); color: #fff; border-color: #059669; }
+
+    .kpi-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; justify-content: space-between; position: relative; }
+    .kpi-title { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+    .kpi-main-val { font-size: 2.2rem; font-weight: 800; color: #fff; margin: 8px 0; }
+    .kpi-subtext { font-size: 0.8rem; color: var(--text-muted); }
+    .kpi-icon { position: absolute; top: 15px; right: 15px; color: var(--accent-cyan); font-size: 1.2rem; }
+
+    .progress-bar-bg { width: 100%; height: 6px; background: var(--bg-subcard); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+    .progress-bar-fill { height: 100%; background: var(--accent-green); width: 0%; transition: width 0.3s; }
+
+    .nav-tabs { display: flex; gap: 15px; border-bottom: 1px solid var(--border); margin-bottom: 20px; padding-bottom: 10px; flex-wrap: wrap; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-size: 0.9rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 6px; }
+    .tab-btn.active { color: var(--accent-cyan); background: rgba(6, 182, 212, 0.1); }
+
+    .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+    .panel-title { font-size: 1.1rem; font-weight: 700; color: #fff; }
+    .monitor-badge { background: var(--bg-subcard); border: 1px solid var(--border); padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; color: var(--accent-cyan); font-weight: 600; }
+
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
+    .peca-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; }
+    .peca-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+    .peca-nome { font-size: 1rem; font-weight: 700; color: #fff; }
+    .peca-status { font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
+    .status-atingida { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+    .status-pendente { background: rgba(100, 116, 139, 0.2); color: var(--text-muted); }
+    .status-livre { background: rgba(6, 182, 212, 0.2); color: var(--accent-cyan); }
+
+    .peca-subgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: var(--bg-subcard); padding: 10px; border-radius: 8px; margin-bottom: 10px; }
+    .side-box { font-size: 0.8rem; }
+    .side-label { color: var(--text-muted); font-size: 0.7rem; font-weight: 700; }
+    .side-val { font-size: 1.1rem; font-weight: 800; color: #fff; margin-top: 2px; }
+    .side-meta { font-size: 0.75rem; color: var(--text-muted); float: right; }
+
+    .peca-footer { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-top: 8px; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .form-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; max-width: 600px; margin: 0 auto; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
+    .form-group input, .form-group select { width: 100%; background: var(--bg-input); border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 8px; font-size: 0.95rem; }
+    .btn-submit { width: 100%; background: #0284c7; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 1rem; }
+
+    table { width: 100%; border-collapse: collapse; background: var(--bg-card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+    th { background: var(--bg-subcard); color: var(--text-muted); font-weight: 700; }
+    .btn-del { background: var(--accent-red); color: #fff; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+
+    #modalMetas { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+    .modal-content { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 25px; width: 95%; max-width: 650px; max-height: 85vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-title { font-size: 1.1rem; font-weight: 700; color: #fff; }
+    .close-modal { background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; }
+    .meta-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: var(--bg-subcard); padding: 10px; border-radius: 8px; gap: 10px; }
+    .meta-row input { width: 70px; text-align: center; background: var(--bg-input); border: 1px solid var(--border); color: #fff; padding: 6px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo-box">⚙️ TECNOFIBRAS</div>
+        <div class="brand-info">
+          <h2>SMC Control</h2>
+          <p>Gestão de Produção & Metas por Turno</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="datetime" id="dataAtual"></div>
+        <button class="btn-action btn-wsp" onclick="exportarWhatsApp()">📤 Exportar p/ WhatsApp</button>
+        <button class="btn-action" onclick="abrirModalMetas()">⚙️ Ajustar Metas</button>
+      </div>
+    </header>
+
+    <div class="top-grid">
+      <div class="card-setor">
+        <div class="setor-label">Setor de Produção</div>
+        <div class="setor-grid-btns">
+          <div class="btn-setor active" id="btnFosq" onclick="setSetor('Fosqueamento SMC')">Fosqueamento</div>
+          <div class="btn-setor" id="btnRobo" onclick="setSetor('Robô SMC')">Robô SMC</div>
+          <div class="btn-setor" id="btnMont" onclick="setSetor('Montagem SMC')">Montagem</div>
+          <div class="btn-setor" id="btnReproc" onclick="setSetor('Reprocesso SMC')">Reprocesso</div>
+        </div>
+        <div class="setor-label" style="margin-top:6px;">Turno Atual</div>
+        <div class="turno-selector">
+          <div class="btn-turno" id="btnTurno3" onclick="setTurno('3º Turno')">3º Turno</div>
+          <div class="btn-turno active" id="btnTurno1" onclick="setTurno('1º Turno')">1º Turno</div>
+          <div class="btn-turno" id="btnTurno2" onclick="setTurno('2º Turno')">2º Turno</div>
+        </div>
+      </div>
+
+      <div class="kpi-box">
+        <span class="kpi-icon">📊</span>
+        <div class="kpi-title">Produzido no Turno</div>
+        <div class="kpi-main-val" id="topTotalReal">0 <span id="spanMetaContainer" style="font-size:1rem; color:var(--text-muted); font-weight:400;">/ Meta: <span id="topTotalMeta">0</span></span></div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="topProgressBar"></div></div>
+      </div>
+
+      <div class="kpi-box">
+        <span class="kpi-icon">⏳</span>
+        <div class="kpi-title">Saldo Restante</div>
+        <div class="kpi-main-val" style="color: var(--accent-yellow);" id="topSaldo">0</div>
+        <div class="kpi-subtext" id="topSaldoSubtext">Peças para atingir a meta</div>
+      </div>
+
+      <div class="kpi-box">
+        <span class="kpi-icon">📈</span>
+        <div class="kpi-title">Atingimento</div>
+        <div class="kpi-main-val" style="color: var(--accent-cyan);" id="topAtingimento">0%</div>
+        <div class="kpi-subtext" id="topApontamentosCount">Calculado em tempo real</div>
+      </div>
+    </div>
+
+    <div class="nav-tabs">
+      <button class="tab-btn active" id="btnTabDash" onclick="switchTab('dashboard')">📈 Painel de Saldo</button>
+      <button class="tab-btn" id="btnTabLancar" onclick="switchTab('lancar')">📝 Lançar Carrinho</button>
+      <button class="tab-btn" id="btnTabHist" onclick="switchTab('historico')">🕒 Histórico do Turno</button>
+      <button class="tab-btn" id="btnTabMensal" onclick="switchTab('mensal')">📅 Produção Acumulada do Mês</button>
+    </div>
+
+    <div id="tab-dashboard" class="tab-content active">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title" id="panelSetorNome">Fosqueamento SMC (1º Turno) - Painel</div>
+        </div>
+        <div class="monitor-badge" id="monitorBadge">Monitor: Carregando...</div>
+      </div>
+      <div class="cards-grid" id="pecasContainer"></div>
+    </div>
+
+    <div id="tab-lancar" class="tab-content">
+      <div class="form-card">
+        <h3 style="color:#fff; margin-bottom:5px;">Lançar Novo Carrinho / Lote</h3>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">Registe a produção para o setor e turno ativos.</p>
+        <form id="lancarForm">
+          <div class="form-group">
+            <label>Setor</label>
+            <select id="formSetor">
+              <option value="Fosqueamento SMC">Fosqueamento SMC</option>
+              <option value="Robô SMC">Robô SMC</option>
+              <option value="Montagem SMC">Montagem SMC</option>
+              <option value="Reprocesso SMC">Reprocesso SMC</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Turno</label>
+            <select id="formTurnoSelect">
+              <option value="3º Turno">3º Turno</option>
+              <option value="1º Turno">1º Turno</option>
+              <option value="2º Turno">2º Turno</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Produto</label>
+            <select id="formProduto" onchange="toggleCamposLadosForm()"></select>
+          </div>
+          <div class="form-group" id="groupLD">
+            <label>Qtd. Lado Direito (LD)</label>
+            <input type="number" id="formLD" value="0" min="0">
+          </div>
+          <div class="form-group" id="groupLE">
+            <label>Qtd. Lado Esquerdo (LE)</label>
+            <input type="number" id="formLE" value="0" min="0">
+          </div>
+          <div class="form-group" id="groupTotal" style="display:none;">
+            <label>Quantidade Total</label>
+            <input type="number" id="formTotalUnico" value="0" min="0">
+          </div>
+          <button type="submit" class="btn-submit" id="btnSalvar">Adicionar Carrinho</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="tab-historico" class="tab-content">
+      <table>
+        <thead>
+          <tr>
+            <th>Hora</th>
+            <th>Turno</th>
+            <th>Produto</th>
+            <th>LD</th>
+            <th>LE</th>
+            <th>Total</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody id="historicoBody">
+          <tr><td colspan="7" style="text-align:center; color: var(--text-muted);">Carregando dados...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="tab-mensal" class="tab-content">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">📅 Acumulado Geral do Mês (Por Setor)</div>
+          <div class="panel-subtitle" id="mesAnoAtualLabel">Resumo da produção mensal</div>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Setor</th>
+            <th>Produto</th>
+            <th>Total no Mês</th>
+          </tr>
+        </thead>
+        <tbody id="mensalBody">
+          <tr><td colspan="3" style="text-align:center; color: var(--text-muted);">Calculando produção mensal...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="modalMetas">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">⚙️ Gerenciar Metas por Setor</div>
+        <button class="close-modal" onclick="fecharModalMetas()">✕</button>
+      </div>
+      <div id="listaMetasModal"></div>
+      <button class="btn-submit" style="margin-top: 15px;" onclick="guardarMetas()">Salvar Alterações</button>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAmma67FFdDNMSWpeWUatPbVpunHIyWpNk",
+      authDomain: "tecnofibras-smc.firebaseapp.com",
+      projectId: "tecnofibras-smc",
+      storageBucket: "tecnofibras-smc.firebasestorage.app",
+      messagingSenderId: "1064018677906",
+      appId: "1:1064018677906:web:1c06990ed8753c94b5d64b"
+    };
+
+    try {
+      firebase.initializeApp(firebaseConfig);
+      window.db = firebase.firestore();
+    } catch (err) {
+      console.error("Firebase:", err);
+    }
+
+    const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+    document.getElementById('dataAtual').innerText = new Date().toLocaleDateString('pt-BR', options);
+
+    // Monitores por Turno e Setor
+    const monitoresPorTurnoSetor = {
+      "Fosqueamento SMC": {
+        "3º Turno": "Jose Nardeli / Marcelo Cordeiro",
+        "1º Turno": "Tatiane Regina da Silva",
+        "2º Turno": "Andrea Veronica"
+      },
+      "Robô SMC": {
+        "3º Turno": "Marcelo Cordeiro da C Junior",
+        "1º Turno": "Jaderson Amaral de Freitas",
+        "2º Turno": "Marcelo de Campos"
+      },
+      "Montagem SMC": {
+        "3º Turno": "Responsável Montagem 3T",
+        "1º Turno": "Luciano de Azevedo",
+        "2º Turno": "Eder de Lima Sousa"
+      },
+      "Reprocesso SMC": {
+        "3º Turno": "Responsável Reprocesso 3T",
+        "1º Turno": "Elisete da Silva / Tatiene Nunes",
+        "2º Turno": "Francisco Marcedonio"
+      }
+    };
+
+    // Peças segregadas por Setor (Algumas passam por montagem/robô, outras não)
+    let pecasPorSetor = {
+      "Fosqueamento SMC": [
+        { id: 'lat_3c', nome: 'Lateral 3c', metaLD: 12, metaLE: 12, temLados: true },
+        { id: 'estribo_p', nome: 'Estribo Pequeno', metaLD: 30, metaLE: 30, temLados: true },
+        { id: 'estribo_g', nome: 'Estribo Grande', metaLD: 25, metaLE: 25, temLados: true },
+        { id: 'grade_nfb', nome: 'Grade NFB', metaTotal: 50, temLados: false },
+        { id: 'sunvisor', nome: 'Sunvisor', metaTotal: 40, temLados: false },
+        { id: 'queixinho_6c', nome: 'Queixinho 6c', metaTotal: 30, temLados: false }
+      ],
+      "Robô SMC": [
+        { id: 'robo_lateral', nome: 'Corte Lateral Robô', metaLD: 40, metaLE: 40, temLados: true },
+        { id: 'robo_grade', nome: 'Corte Grade Robô', metaTotal: 80, temLados: false }
+      ],
+      "Montagem SMC": [
+        { id: 'mont_estribo', nome: 'Montagem Conjunto Estribo', metaLD: 25, metaLE: 25, temLados: true },
+        { id: 'mont_sunvisor', nome: 'Montagem Sunvisor Completo', metaTotal: 35, temLados: false }
+      ],
+      "Reprocesso SMC": [
+        { id: 'reproc_geral', nome: 'Peças Reprocessadas Diversas', temLados: false, semMeta: true }
+      ]
+    };
+
+    let setorAtual = "Fosqueamento SMC";
+    let turnoAtual = "1º Turno";
+    let dadosAcumuladosGlobal = {};
+    let totalRealGlobal = 0;
+    let totalMetaGlobal = 0;
+    let atingimentoGlobal = 0;
+
+    function setSetor(setor) {
+      setorAtual = setor;
+      document.getElementById('btnFosq').classList.toggle('active', setor === 'Fosqueamento SMC');
+      document.getElementById('btnRobo').classList.toggle('active', setor === 'Robô SMC');
+      document.getElementById('btnMont').classList.toggle('active', setor === 'Montagem SMC');
+      document.getElementById('btnReproc').classList.toggle('active', setor === 'Reprocesso SMC');
+      
+      document.getElementById('panelSetorNome').innerText = `${setor} (${turnoAtual}) - Painel`;
+      document.getElementById('formSetor').value = setor;
+      atualizarMonitorBadge();
+      atualizarSelectProdutos();
+      ouvirLogsProducao();
+    }
+
+    function setTurno(turno) {
+      turnoAtual = turno;
+      document.getElementById('btnTurno3').classList.toggle('active', turno === '3º Turno');
+      document.getElementById('btnTurno1').classList.toggle('active', turno === '1º Turno');
+      document.getElementById('btnTurno2').classList.toggle('active', turno === '2º Turno');
+      document.getElementById('panelSetorNome').innerText = `${setorAtual} (${turnoAtual}) - Painel`;
+      document.getElementById('formTurnoSelect').value = turno;
+      atualizarMonitorBadge();
+      ouvirLogsProducao();
+    }
+
+    function atualizarMonitorBadge() {
+      const monitor = (monitoresPorTurnoSetor[setorAtual] && monitoresPorTurnoSetor[setorAtual][turnoAtual]) || "Responsável do Turno";
+      document.getElementById('monitorBadge').innerText = `Monitor(a): ${monitor}`;
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      
+      if (tab === 'dashboard') document.getElementById('btnTabDash').classList.add('active');
+      if (tab === 'lancar') document.getElementById('btnTabLancar').classList.add('active');
+      if (tab === 'historico') document.getElementById('btnTabHist').classList.add('active');
+      if (tab === 'mensal') {
+        document.getElementById('btnTabMensal').classList.add('active');
+        carregarProducaoMensal();
+      }
+
+      const targetTab = document.getElementById(`tab-${tab}`);
+      if (targetTab) targetTab.classList.add('active');
+    }
+
+    function atualizarSelectProdutos() {
+      const select = document.getElementById('formProduto');
+      const listaPecas = pecasPorSetor[setorAtual] || [];
+      if (select) {
+        select.innerHTML = listaPecas.map(p => `<option value="${p.nome}">${p.nome}</option>`).join('');
+        toggleCamposLadosForm();
+      }
+    }
+
+    function toggleCamposLadosForm() {
+      const select = document.getElementById('formProduto');
+      if (!select) return;
+      const prodNome = select.value;
+      const listaPecas = pecasPorSetor[setorAtual] || [];
+      const peca = listaPecas.find(p => p.nome === prodNome);
+      
+      if (peca && peca.temLados) {
+        document.getElementById('groupLD').style.display = 'block';
+        document.getElementById('groupLE').style.display = 'block';
+        document.getElementById('groupTotal').style.display = 'none';
+      } else {
+        document.getElementById('groupLD').style.display = 'none';
+        document.getElementById('groupLE').style.display = 'none';
+        document.getElementById('groupTotal').style.display = 'block';
+      }
+    }
+
+    function abrirModalMetas() {
+      renderizarListaModalMetas();
+      document.getElementById('modalMetas').style.display = 'flex';
+    }
+
+    function fecharModalMetas() {
+      document.getElementById('modalMetas').style.display = 'none';
+    }
+
+    function renderizarListaModalMetas() {
+      let html = `<h4 style="color:var(--accent-cyan); margin-bottom:10px;">Metas para: ${setorAtual}</h4>`;
+      const lista = pecasPorSetor[setorAtual] || [];
+      lista.forEach((p, index) => {
+        if (p.semMeta) {
+          html += `<div class="meta-row"><span style="font-size:0.85rem;"><b>${p.nome}</b> (Sem Meta)</span></div>`;
+        } else if (p.temLados) {
+          html += `
+            <div class="meta-row">
+              <span style="font-size:0.85rem;"><b>${p.nome}</b></span>
+              <div style="display:flex; gap:5px; align-items:center;">
+                LD:<input type="number" id="meta_ld_${index}" value="${p.metaLD}">
+                LE:<input type="number" id="meta_le_${index}" value="${p.metaLE}">
+              </div>
+            </div>
+          `;
+        } else {
+          html += `
+            <div class="meta-row">
+              <span style="font-size:0.85rem;"><b>${p.nome}</b></span>
+              <div style="display:flex; gap:5px; align-items:center;">
+                Total:<input type="number" id="meta_tot_${index}" value="${p.metaTotal}">
+              </div>
+            </div>
+          `;
+        }
+      });
+      document.getElementById('listaMetasModal').innerHTML = html;
+    }
+
+    async function guardarMetas() {
+      const lista = pecasPorSetor[setorAtual] || [];
+      lista.forEach((p, index) => {
+        if (!p.semMeta) {
+          if (p.temLados) {
+            const elLd = document.getElementById(`meta_ld_${index}`);
+            const elLe = document.getElementById(`meta_le_${index}`);
+            if (elLd) p.metaLD = parseInt(elLd.value) || 0;
+            if (elLe) p.metaLE = parseInt(elLe.value) || 0;
+          } else {
+            const elTot = document.getElementById(`meta_tot_${index}`);
+            if (elTot) p.metaTotal = parseInt(elTot.value) || 0;
+          }
+        }
+      });
+      
+      if (window.db) {
+        await window.db.collection('configuracoes').doc('pecas_metas_v2').set({ pecasPorSetor });
+      }
+      fecharModalMetas();
+      atualizarSelectProdutos();
+      ouvirLogsProducao();
+      alert("Metas atualizadas com sucesso!");
+    }
+
+    async function excluirLancamento(idDoc) {
+      if (confirm("Excluir este lançamento permanentemente?")) {
+        try {
+          if (window.db) {
+            await window.db.collection('producao_logs').doc(idDoc).delete();
+          }
+        } catch (err) {
+          alert("Erro ao excluir: " + err.message);
+        }
+      }
+    }
+
+    function exportarWhatsApp() {
+      const monitor = (monitoresPorTurnoSetor[setorAtual] && monitoresPorTurnoSetor[setorAtual][turnoAtual]) || "N/A";
+      let texto = `📊 *RELATÓRIO DE PRODUÇÃO - TECNOFIBRAS*\n`;
+      texto += `📅 Data: *${new Date().toLocaleDateString('pt-BR')}*\n`;
+      texto += `🏭 Setor: *${setorAtual}*\n`;
+      texto += `⏱️ Turno: *${turnoAtual}*\n`;
+      texto += `👤 Monitor(a): *${monitor}*\n`;
+      texto += `-----------------------------------\n`;
+      
+      if (setorAtual === "Reprocesso SMC") {
+        texto += `📦 *Total Reprocessado:* ${totalRealGlobal} unidades\n`;
+      } else {
+        texto += `📈 *Total Produzido:* ${totalRealGlobal} / Meta: ${totalMetaGlobal}\n`;
+        texto += `🎯 *Atingimento:* ${atingimentoGlobal}%\n`;
+      }
+      texto += `-----------------------------------\n`;
+      texto += `📦 *Detalhes por Peça (Turno):*\n`;
+
+      const lista = pecasPorSetor[setorAtual] || [];
+      lista.forEach(p => {
+        const dados = dadosAcumuladosGlobal[p.nome] || { ld: 0, le: 0, total: 0 };
+        if (p.semMeta) {
+          texto += `• *${p.nome}*: ${dados.total} un (Reprocesso)\n`;
+        } else {
+          const metaTotal = p.temLados ? ((p.metaLD || 0) + (p.metaLE || 0)) : (p.metaTotal || 0);
+          const falta = Math.max(0, metaTotal - dados.total);
+          const status = dados.total >= metaTotal ? '✅ CONCLUÍDA' : `⏳ Falta: ${falta}`;
+          texto += `• *${p.nome}*: ${dados.total}/${metaTotal} (${status})\n`;
+        }
+      });
+
+      texto += `-----------------------------------\n`;
+      texto += `_Gerado pelo SMC Control_`;
+
+      const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
+      window.open(url, '_blank');
+    }
+
+    document.getElementById('formSetor').addEventListener('change', (e) => {
+      setSetor(e.target.value);
+    });
+
+    document.getElementById('lancarForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btnSalvar');
+      btn.disabled = true;
+
+      const setor = document.getElementById('formSetor').value;
+      const turno = document.getElementById('formTurnoSelect').value;
+      const produto = document.getElementById('formProduto').value;
+      const listaPecas = pecasPorSetor[setor] || [];
+      const peca = listaPecas.find(p => p.nome === produto);
+
+      let ld = 0, le = 0, total = 0;
+      if (peca && peca.temLados) {
+        ld = parseInt(document.getElementById('formLD').value) || 0;
+        le = parseInt(document.getElementById('formLE').value) || 0;
+        total = ld + le;
+      } else {
+        total = parseInt(document.getElementById('formTotalUnico').value) || 0;
+      }
+
+      if (total <= 0) {
+        alert("Insira uma quantidade válida.");
+        btn.disabled = false;
+        return;
+      }
+
+      const agora = new Date();
+      const mesAno = `${agora.getMonth() + 1}-${agora.getFullYear()}`;
+      const dataIso = agora.toISOString().split('T')[0];
+
+      try {
+        if (window.db) {
+          await window.db.collection('producao_logs').add({
+            setor,
+            turno,
+            produto,
+            ld,
+            le,
+            total,
+            dataIso,
+            mesAno,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
+        document.getElementById('formLD').value = '0';
+        document.getElementById('formLE').value = '0';
+        document.getElementById('formTotalUnico').value = '0';
+        switchTab('dashboard');
+      } catch (err) {
+        alert("Erro ao gravar: " + err.message);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    function carregarConfiguracoes() {
+      if (window.db) {
+        window.db.collection('configuracoes').doc('pecas_metas_v2').get().then((doc) => {
+          if (doc.exists && doc.data().pecasPorSetor) {
+            pecasPorSetor = doc.data().pecasPorSetor;
+          }
+          atualizarSelectProdutos();
+          ouvirLogsProducao();
+        }).catch(() => {
+          atualizarSelectProdutos();
+          ouvirLogsProducao();
+        });
+      } else {
+        atualizarSelectProdutos();
+        ouvirLogsProducao();
+      }
+    }
+
+    function ouvirLogsProducao() {
+      if (!window.db) return;
+
+      const hojeIso = new Date().toISOString().split('T')[0];
+
+      window.db.collection('producao_logs')
+        .orderBy('timestamp', 'desc')
+        .onSnapshot((snapshot) => {
+          let acumulado = {};
+          let totalMetaGeral = 0;
+          const listaPecas = pecasPorSetor[setorAtual] || [];
+
+          listaPecas.forEach(p => {
+            acumulado[p.nome] = { ld: 0, le: 0, total: 0 };
+            if (!p.semMeta) {
+              const metaDaPeca = p.temLados ? ((p.metaLD || 0) + (p.metaLE || 0)) : (p.metaTotal || 0);
+              totalMetaGeral += metaDaPeca;
+            }
+          });
+
+          let totalProduzidoGeral = 0;
+          let historicoHTML = '';
+          let count = 0;
+
+          snapshot.forEach(doc => {
+            const d = doc.data();
+            if (d.dataIso === hojeIso && d.setor === setorAtual && d.turno === turnoAtual) {
+              count++;
+              totalProduzidoGeral += (d.total || 0);
+
+              if (acumulado[d.produto]) {
+                acumulado[d.produto].ld += (d.ld || 0);
+                acumulado[d.produto].le += (d.le || 0);
+                acumulado[d.produto].total += (d.total || 0);
+              }
+
+              let hora = '--:--';
+              if (d.timestamp) {
+                hora = d.timestamp.toDate().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+              }
+
+              historicoHTML += `
+                <tr>
+                  <td>${hora}</td>
+                  <td>${d.turno}</td>
+                  <td><b>${d.produto}</b></td>
+                  <td>${d.ld || 0}</td>
+                  <td>${d.le || 0}</td>
+                  <td><b>${d.total || 0}</b></td>
+                  <td><button class="btn-del" onclick="excluirLancamento('${doc.id}')">🗑️ Apagar</button></td>
+                </tr>
+              `;
+            }
+          });
+
+          dadosAcumuladosGlobal = acumulado;
+          totalRealGlobal = totalProduzidoGeral;
+          totalMetaGlobal = totalMetaGeral;
+          atingimentoGlobal = totalMetaGeral > 0 ? Math.round((totalProduzidoGeral / totalMetaGeral) * 100) : 0;
+
+          let cardsHTML = '';
+          listaPecas.forEach(p => {
+            const dados = acumulado[p.nome] || { ld: 0, le: 0, total: 0 };
+            
+            if (p.semMeta) {
+              cardsHTML += `
+                <div class="peca-card">
+                  <div class="peca-header">
+                    <div class="peca-nome">${p.nome}</div>
+                    <div class="peca-status status-livre">SEM META (REPROCESSO)</div>
+                  </div>
+                  <div class="peca-footer" style="margin-top:15px;">
+                    <span>Total Reprocessado: <b style="color:var(--accent-cyan); font-size:1.1rem;">${dados.total}</b></span>
+                  </div>
+                </div>
+              `;
+            } else {
+              const metaTotal = p.temLados ? ((p.metaLD || 0) + (p.metaLE || 0)) : (p.metaTotal || 0);
+              const falta = Math.max(0, metaTotal - dados.total);
+              const porc = metaTotal > 0 ? Math.min(100, Math.round((dados.total / metaTotal) * 100)) : 0;
+              const atingida = dados.total >= metaTotal;
+
+              cardsHTML += `
+                <div class="peca-card">
+                  <div class="peca-header">
+                    <div class="peca-nome">${p.nome}</div>
+                    <div class="peca-status ${atingida ? 'status-atingida' : 'status-pendente'}">
+                      ${atingida ? 'META ATINGIDA' : 'PENDENTE'}
+                    </div>
+                  </div>
+                  ${p.temLados ? `
+                    <div class="peca-subgrid">
+                      <div class="side-box">
+                        <div class="side-label">LADO DIR. (LD) <span class="side-meta">Meta: ${p.metaLD || 0}</span></div>
+                        <div class="side-val">${dados.ld}</div>
+                      </div>
+                      <div class="side-box">
+                        <div class="side-label">LADO ESQ. (LE) <span class="side-meta">Meta: ${p.metaLE || 0}</span></div>
+                        <div class="side-val">${dados.le}</div>
+                      </div>
+                    </div>
+                  ` : ''}
+                  <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${porc}%;"></div></div>
+                  <div class="peca-footer">
+                    <span>Produzido: <b style="color:#fff;">${dados.total}</b></span>
+                    <span style="color: ${falta === 0 ? 'var(--accent-green)' : 'var(--accent-yellow)'};">Falta: ${falta}</span>
+                  </div>
+                </div>
+              `;
+            }
+          });
+
+          document.getElementById('pecasContainer').innerHTML = cardsHTML;
+          document.getElementById('historicoBody').innerHTML = historicoHTML || `<tr><td colspan="7" style="text-align:center; color: var(--text-muted);">Nenhum registo neste turno.</td></tr>`;
+          
+          if (setorAtual === "Reprocesso SMC") {
+            document.getElementById('topTotalReal').innerText = totalProduzidoGeral;
+            document.getElementById('spanMetaContainer').style.display = 'none';
+            document.getElementById('topSaldo').innerText = 'N/A';
+            document.getElementById('topSaldoSubtext').innerText = 'Área sem controle de metas';
+            document.getElementById('topAtingimento').innerText = '-';
+            document.getElementById('topProgressBar').style.width = '100%';
+          } else {
+            document.getElementById('spanMetaContainer').style.display = 'inline';
+            document.getElementById('topTotalReal').innerText = totalProduzidoGeral;
+            document.getElementById('topTotalMeta').innerText = totalMetaGeral;
+            document.getElementById('topSaldo').innerText = Math.max(0, totalMetaGeral - totalProduzidoGeral);
+            document.getElementById('topSaldoSubtext').innerText = 'Peças para atingir a meta';
+            document.getElementById('topAtingimento').innerText = atingimentoGlobal + '%';
+            document.getElementById('topProgressBar').style.width = Math.min(100, atingimentoGlobal) + '%';
+          }
+          document.getElementById('topApontamentosCount').innerText = `${count} apontamentos`;
+        });
+    }
+
+    function carregarProducaoMensal() {
+      if (!window.db) return;
+      const agora = new Date();
+      const mesAnoAtual = `${agora.getMonth() + 1}-${agora.getFullYear()}`;
+      document.getElementById('mesAnoAtualLabel').innerText = `Mês referência: ${agora.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })} (Zera automaticamente na virada do mês)`;
+
+      window.db.collection('producao_logs')
+        .where('mesAno', '==', mesAnoAtual)
+        .get()
+        .then((snapshot) => {
+          let mensalPorSetor = {};
+          snapshot.forEach(doc => {
+            const d = doc.data();
+            if (!mensalPorSetor[d.setor]) mensalPorSetor[d.setor] = {};
+            if (!mensalPorSetor[d.setor][d.produto]) mensalPorSetor[d.setor][d.produto] = 0;
+            mensalPorSetor[d.setor][d.produto] += (d.total || 0);
+          });
+
+          let html = '';
+          for (const [setor, prods] of Object.entries(mensalPorSetor)) {
+            for (const [prod, qtd] of Object.entries(prods)) {
+              html += `<tr><td><b>${setor}</b></td><td>${prod}</td><td>${qtd} unidades</td></tr>`;
+            }
+          }
+          document.getElementById('mensalBody').innerHTML = html || `<tr><td colspan="3" style="text-align:center; color: var(--text-muted);">Nenhum registo neste mês.</td></tr>`;
+        });
+    }
+
+    atualizarMonitorBadge();
+    carregarConfiguracoes();
+  </script>
+</body>
+</html>
